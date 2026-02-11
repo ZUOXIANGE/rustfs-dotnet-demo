@@ -64,7 +64,7 @@ public class ChecksumTests : IAsyncLifetime
         var bucketName = $"bucket-no-checksum-{Guid.NewGuid()}";
         var fileName = "test-file-no-checksum.txt";
         var content = "This is a test file uploaded without checksum validation.";
-        
+
         await s3Client.PutBucketAsync(bucketName, TestContext.Current.CancellationToken);
 
         var transferUtility = new TransferUtility(s3Client);
@@ -87,7 +87,7 @@ public class ChecksumTests : IAsyncLifetime
         // Verify file existence
         var response = await s3Client.GetObjectAsync(bucketName, fileName, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.HttpStatusCode);
-        
+
         using var reader = new StreamReader(response.ResponseStream);
         var uploadedContent = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
         Assert.Equal(content, uploadedContent);
@@ -104,10 +104,10 @@ public class ChecksumTests : IAsyncLifetime
         var s3Client = CreateS3Client();
         var bucketName = $"bucket-with-checksum-{Guid.NewGuid()}";
         var fileName = "test-file-with-checksum.txt";
-        
+
         // Use a large file size (20MB) to trigger Multipart Upload
         // TransferUtility default threshold is usually around 16MB
-        var fileSize = 20 * 1024 * 1024; 
+        var fileSize = 20 * 1024 * 1024;
         var content = new byte[fileSize];
         new Random().NextBytes(content);
 
@@ -129,7 +129,7 @@ public class ChecksumTests : IAsyncLifetime
         // Expected behavior: Since RustFS does not yet fully support the default Checksum behavior of AWS SDK (possibly SHA256/CRC32 checksum mismatch),
         // AmazonS3Exception should be thrown here.
         // If RustFS fixes this issue in the future, this test will fail (no exception thrown), then Assert.ThrowsAsync should be removed and changed to Assert.Equal(HttpStatusCode.OK, ...).
-        var ex = await Assert.ThrowsAsync<AmazonS3Exception>(async () => 
+        var ex = await Assert.ThrowsAsync<AmazonS3Exception>(async () =>
             await transferUtility.UploadAsync(request, TestContext.Current.CancellationToken));
     }
 }

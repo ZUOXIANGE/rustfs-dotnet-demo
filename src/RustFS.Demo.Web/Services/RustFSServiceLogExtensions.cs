@@ -62,6 +62,6 @@ public static partial class RustFSServiceLogExtensions
     [LoggerMessage(1107, LogLevel.Information, "File deleted successfully: {BucketName}/{Key}")]
     public static partial void LogFileDeleted(this ILogger logger, string bucketName, string key);
 
-    [LoggerMessage(1108, LogLevel.Warning, "File deletion might have failed, status code: {StatusCode}")]
+    [LoggerMessage(1108, LogLevel.Warning, "File deletion might have failed for {BucketName}, status code: {StatusCode}")]
     public static partial void LogFileDeletionFailed(this ILogger logger, string bucketName, System.Net.HttpStatusCode statusCode);
 }

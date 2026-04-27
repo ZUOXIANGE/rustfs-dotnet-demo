@@ -94,11 +94,11 @@ public class ChecksumTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Reproduce the compatibility issue of RustFS when handling default Checksum validation.
-    /// When the file is large (triggering Multipart Upload) and Checksum is not disabled, RustFS may fail to upload.
+    /// Verifies the current RustFS behavior when using default checksum validation.
+    /// Large files trigger multipart upload and should upload successfully without disabling checksum validation.
     /// </summary>
     [Fact]
-    public async Task Upload_LargeFile_WithDefaultChecksum_ShouldFail_DueToRustFSBug()
+    public async Task Upload_LargeFile_WithDefaultChecksum_ShouldSucceed()
     {
         // Arrange
         var s3Client = CreateS3Client();
@@ -126,10 +126,10 @@ public class ChecksumTests : IAsyncLifetime
             // Default DisableDefaultChecksumValidation = false
         };
 
-        // Expected behavior: Since RustFS does not yet fully support the default Checksum behavior of AWS SDK (possibly SHA256/CRC32 checksum mismatch),
-        // AmazonS3Exception should be thrown here.
-        // If RustFS fixes this issue in the future, this test will fail (no exception thrown), then Assert.ThrowsAsync should be removed and changed to Assert.Equal(HttpStatusCode.OK, ...).
-        var ex = await Assert.ThrowsAsync<AmazonS3Exception>(async () =>
-            await transferUtility.UploadAsync(request, TestContext.Current.CancellationToken));
+        await transferUtility.UploadAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        var response = await s3Client.GetObjectAsync(bucketName, fileName, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.HttpStatusCode);
     }
 }
